@@ -77,16 +77,15 @@ repositories {}
 
 dependencies {
     // MOCKERS
-    compileOnly project(":lib-forge")
-    compileOnly project(":lib-neoforge")
+    compileOnly project(":lib-modloaders")
     compileOnly "net.fabricmc:fabric-loader:${fbversion}"
 
     // SUB-LIBRARIES
     shadow project(":lib-vlcj")
-    shadow project(":lib-ytdownloader")
 
     // LIBRARIES TO BE SHADOW
     shadow 'org.apache.commons:commons-compress:1.26.0'
+    shadow 'com.github.sealedtx:java-youtube-downloader:3.2.3'
     shadow 'org.tukaani:xz:1.9'
     shadow 'com.github.luben:zstd-jni:1.5.5-11'
 
