@@ -222,6 +222,17 @@ public class MathAPI {
     public static int argb(int a, int r, int g, int b) { return (a << 24) | (r << 16) | (g << 8) | b; }
 
     /**
+     * Creates a hexadecimal color based on gave params
+     * All values need to be in a range of 0.0f ~ 1.0f
+     * @param a Alpha
+     * @param r Red
+     * @param g Green
+     * @param b Blue
+     * @return HEX color
+     */
+    public static int argb(float a, float r, float g, float b) { return argb((int) (a * 255), (int) (r * 255), (int) (g * 255), (int) (b * 255)); }
+
+    /**
      * Converts arguments into an ease-in value usable on animations.
      *
      * @param start The beginning of the result across time.
