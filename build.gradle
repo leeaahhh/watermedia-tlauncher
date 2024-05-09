@@ -18,53 +18,57 @@ allprojects {
         maven { url "https://repo.spongepowered.org/maven" }
         maven { url 'https://jitpack.io' }
     }
-    afterEvaluate {
-        java {
-            withSourcesJar()
-            sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+
+    java {
+        withSourcesJar()
+        sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    base.archivesName = "${project.id}"
+
+    configurations {
+        compileAndTest
+    }
+
+    sourceSets {
+        test {
+            compileClasspath += configurations.compileAndTest
+            runtimeClasspath += configurations.compileAndTest
         }
 
-        base.archivesName = "${id}"
-
-        configurations {
-            compileAndTest
-        }
-
-        sourceSets {
+        main {
             main.compileClasspath += configurations.compileAndTest
-            test.compileClasspath += configurations.compileAndTest
-            test.runtimeClasspath += configurations.compileAndTest
         }
+    }
 
-        sourcesJar {
-            exclude("**.zip")
-            exclude("**.7z")
-            exclude("**.gz")
-        }
+    sourcesJar {
+        exclude("**.zip")
+        exclude("**.7z")
+        exclude("**.gz")
+    }
 
-        dependencies {
-            // NEEDED DEPENDENCIES (SOME ARE INCLUDED IN MC)
-            compileAndTest 'org.lwjgl:lwjgl-opengl:3.2.2'
-            compileAndTest 'net.java.dev.jna:jna:4.4.0'
-            compileAndTest 'net.java.dev.jna:platform:3.4.0'
-            compileAndTest 'com.google.code.gson:gson:2.10.1'
-            compileAndTest 'org.apache.logging.log4j:log4j-api:2.20.0'
-            compileAndTest 'org.apache.logging.log4j:log4j-core:2.20.0'
-            compileAndTest 'org.apache.commons:commons-lang3:3.12.0'
-            compileAndTest 'commons-io:commons-io:2.7' // NOTE: ask Forge to bump this on 1.16.5
-        }
+    dependencies {
+        // NEEDED DEPENDENCIES (SOME ARE INCLUDED IN MC)
+        compileAndTest 'org.lwjgl:lwjgl-opengl:3.2.2'
+        compileAndTest 'net.java.dev.jna:jna:4.4.0'
+        compileAndTest 'net.java.dev.jna:platform:3.4.0'
+        compileAndTest 'com.google.code.gson:gson:2.10.1'
+        compileAndTest 'org.apache.logging.log4j:log4j-api:2.20.0'
+        compileAndTest 'org.apache.logging.log4j:log4j-core:2.20.0'
+        compileAndTest 'org.apache.commons:commons-lang3:3.12.0'
+        compileAndTest 'commons-io:commons-io:2.7' // NOTE: ask Forge to bump this on 1.16.5
+    }
 
-        // Process target resources with mod info
-        processResources {
-            filesMatching(['META-INF/mods.toml', 'pack.mcmeta', 'fabric.mod.json', "mcmod.info", "watermedia/version.cfg"]) {
-                expand(project.properties)
-            }
-            outputs.upToDateWhen { false }
+    // Process target resources with mod info
+    processResources {
+        filesMatching(['META-INF/mods.toml', 'pack.mcmeta', 'fabric.mod.json', "mcmod.info", "watermedia/version.cfg"]) {
+            expand(project.properties)
         }
+        outputs.upToDateWhen { false }
+    }
 
-        tasks.withType(JavaCompile).configureEach {
-            it.options.encoding = 'UTF-8'
-        }
+    tasks.withType(JavaCompile).configureEach {
+        it.options.encoding = 'UTF-8'
     }
 }
 
