@@ -1,4 +1,5 @@
-package net.minecraftforge.fml.common;
+
+package net.neoforge.fml.common;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

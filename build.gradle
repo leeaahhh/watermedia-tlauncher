@@ -61,7 +61,7 @@ allprojects {
 
     // Process target resources with mod info
     processResources {
-        filesMatching(['META-INF/mods.toml', 'pack.mcmeta', 'fabric.mod.json', "mcmod.info", "watermedia/version.cfg"]) {
+        filesMatching(['META-INF/mods.toml', 'pack.mcmeta', 'fabric.mod.json', "watermedia/version.cfg"]) {
             expand(project.properties)
         }
         outputs.upToDateWhen { false }
