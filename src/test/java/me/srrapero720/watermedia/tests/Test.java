@@ -8,7 +8,7 @@ import org.apache.logging.log4j.MarkerManager;
 import java.util.ServiceLoader;
 
 public abstract class Test {
-    protected static final Logger LOGGER = LogManager.getLogger("watermedia");
+    public static final Logger LOGGER = LogManager.getLogger("watermedia");
     protected static final Marker IT = MarkerManager.getMarker("Test");
 
     protected abstract void prepare() throws Exception;
