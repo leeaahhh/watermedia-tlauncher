@@ -2,6 +2,7 @@ package me.srrapero720.watermedia.api.cache;
 
 import me.srrapero720.watermedia.WaterMedia;
 import me.srrapero720.watermedia.api.WaterMediaAPI;
+import me.srrapero720.watermedia.api.config.WaterConfig;
 import me.srrapero720.watermedia.loaders.ILoader;
 import me.srrapero720.watermedia.tools.IOTool;
 import org.apache.logging.log4j.Marker;
@@ -28,13 +29,6 @@ public class CacheAPI extends WaterMediaAPI {
     private static File index;
     private static boolean released = true;
 
-    public CacheAPI() {
-        super();
-        ILoader bootstrap = WaterMedia.getLoader();
-        dir = bootstrap.tempDir().toAbsolutePath().resolve("cache/pictures").toFile();
-        index = new File(dir, "index");
-    }
-
     @Override
     public Priority priority() {
         return Priority.NORMAL;
@@ -42,6 +36,9 @@ public class CacheAPI extends WaterMediaAPI {
 
     @Override
     public boolean prepare(ILoader bootCore) {
+        dir = new File(WaterConfig.vlcInstallPath, "cache/pictures");
+        index = new File(dir, "index");
+
         if (!released) {
             LOGGER.error(IT, "Failed due boot API while is not released, boot cancelled");
             return false;

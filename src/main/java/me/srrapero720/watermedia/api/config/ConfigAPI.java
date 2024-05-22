@@ -1,59 +1,129 @@
 package me.srrapero720.watermedia.api.config;
 
+import me.srrapero720.watermedia.WaterMedia;
 import me.srrapero720.watermedia.api.WaterInternalAPI;
-import me.srrapero720.watermedia.api.config.values.BooleanValue;
-import me.srrapero720.watermedia.api.config.values.IntegerValue;
-import me.srrapero720.watermedia.api.config.values.StringValue;
-import me.srrapero720.watermedia.api.config.values.Value;
+import me.srrapero720.watermedia.api.config.values.ConfigField;
+import me.srrapero720.watermedia.api.config.values.RangeOf;
+import me.srrapero720.watermedia.api.config.values.WaterConfigFile;
 import me.srrapero720.watermedia.loaders.ILoader;
-import me.srrapero720.watermedia.tools.ByteTools;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Properties;
 
 public class ConfigAPI extends WaterInternalAPI {
-    public static final IntegerValue VAL = new IntegerValue("", 1);
 
+    private static WaterConfig config = new WaterConfig();
 
-    private static final Config DEFAULT_CONFIG = new Config();
+    private static Properties properties;
+    private static File configFile;
 
-    private static Map<String, Value<?>> readFile(Path configFile) {
-        Map<String, Value<?>> values = new LinkedHashMap<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(configFile.toFile()))) {
-            String line;
+    private static void loadConfiguration(Path configFilePath, Object configInstance) {
+        configFile = new File(configFilePath.toUri());
 
-            while ((line = reader.readLine()) != null) {
-                if (line.isEmpty()) continue;
-                else line = line.trim();
+        properties = new Properties();
 
-                // IS A COMMENT? SKIP IT
-                if (line.charAt(0) == '#') continue;
+        try {
+            if (!configFile.exists()) {
+                configFile.getParentFile().mkdirs();
+                configFile.createNewFile();
+                saveConfiguration(configInstance);
+            }
 
-                // GET KEY-VALUES
-                String[] keyValue = line.split("=");
-                if (keyValue.length != 2) throw new IllegalArgumentException("Config file is damaged!");
+            try (InputStream inputStream = Files.newInputStream(configFile.toPath())) {
+                properties.load(inputStream);
+            }
 
-                if (keyValue[1].charAt(0) == '"' && keyValue[1].endsWith("\"")) { // ALWAYS ASSUME IS A STRING VALUE
-                    values.put(keyValue[0], new StringValue(keyValue[0], keyValue[1].substring(1).substring(0, keyValue[1].length() - 2)));
-                } else if (keyValue[1].equals("true") || keyValue[1].equals("false")) { // IS A BOOLEAN?
-                    values.put(keyValue[0], new BooleanValue(keyValue[0], Boolean.valueOf(keyValue[1])));
-                } else if (ByteTools.parseInt(keyValue[1]) != null) { // GET INT VALUE
-                    values.put(keyValue[0], new IntegerValue(keyValue[0], ByteTools.parseInt(keyValue[1])));
-                } else { // String
-                    values.put(keyValue[0], new StringValue(keyValue[0], keyValue[1]));
+            if (synchronizeFromProperties(configInstance)) {
+                WaterMedia.LOGGER.info("Configuration loaded correctly.");
+            } else {
+                WaterMedia.LOGGER.error("There was a problem syncing the configuration.");
+            }
+        } catch (IOException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void saveConfiguration(Object configInstance) {
+        try (OutputStream outputStream = Files.newOutputStream(configFile.toPath())) {
+            synchronizeToProperties(configInstance);
+            properties.store(outputStream, "WaterMedia Configuration");
+        } catch (IOException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean synchronizeFromProperties(Object instance) throws IllegalAccessException {
+        Class<?> clazz = instance.getClass();
+        if (clazz.isAnnotationPresent(WaterConfigFile.class)) {
+            for (Field field : clazz.getDeclaredFields()) {
+                if (field.isAnnotationPresent(ConfigField.class)) {
+                    String key = field.getName();
+                    String value = properties.getProperty(key);
+
+                    if (value != null) {
+                        field.setAccessible(true);
+                        if (!setFieldValue(field, value, instance)) return false;
+                    }
                 }
             }
-            return values;
-        } catch (Exception e) {
-            return new HashMap<>();
         }
+        return true;
+    }
+
+    private static void synchronizeToProperties(Object instance) throws IllegalAccessException {
+        Class<?> clazz = instance.getClass();
+        if (clazz.isAnnotationPresent(WaterConfigFile.class)) {
+            for (Field field : clazz.getDeclaredFields()) {
+                if (field.isAnnotationPresent(ConfigField.class)) {
+                    String key = field.getName();
+                    field.setAccessible(true);
+                    properties.setProperty(key, field.get(instance).toString());
+                }
+            }
+        }
+    }
+
+    private static boolean setFieldValue(Field field, String value, Object instance) {
+        Class<?> type = field.getType();
+        try {
+            if (type == int.class) {
+                int intValue = Integer.parseInt(value);
+                if (field.isAnnotationPresent(RangeOf.class)) {
+                    RangeOf range = field.getAnnotation(RangeOf.class);
+                    if (!validateRange(intValue, range)) {
+                        return false;
+                    }
+                }
+                field.setInt(instance, intValue);
+            } else if (type == long.class) {
+                long longValue = Long.parseLong(value);
+                field.setLong(instance, longValue);
+            } else if (type == float.class) {
+                float floatValue = Float.parseFloat(value);
+                field.setFloat(instance, floatValue);
+            } else if (type == double.class) {
+                double doubleValue = Double.parseDouble(value);
+                field.setDouble(instance, doubleValue);
+            } else if (type == String.class) {
+                field.set(instance, value);
+            } else if (type.isEnum()) {
+                Object enumValue = Enum.valueOf((Class<Enum>) type, value);
+                field.set(instance, enumValue);
+            } else if (type == boolean.class) {
+                boolean booleanValue = Boolean.parseBoolean(value);
+                field.setBoolean(instance, booleanValue);
+            }
+        } catch (IllegalArgumentException | NullPointerException | IllegalAccessException ignored) {
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean validateRange(int value, RangeOf range) {
+        return value >= range.min() && value <= range.max();
     }
 
     @Override
@@ -68,13 +138,11 @@ public class ConfigAPI extends WaterInternalAPI {
 
     @Override
     public void start(ILoader bootCore) throws Exception {
-        if (!DEFAULT_CONFIG.refresh(readFile(bootCore.processDir().resolve("config/watermedia.wt")))) {
-            Files.write(bootCore.processDir().resolve("config/watermedia.wt"), DEFAULT_CONFIG.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE);
-        }
+        loadConfiguration(bootCore.processDir().resolve("config/watermedia.wt"), config);
     }
 
     @Override
     public void release() {
-
+//        saveConfiguration(config);
     }
 }

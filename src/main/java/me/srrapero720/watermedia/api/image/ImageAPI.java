@@ -2,6 +2,7 @@ package me.srrapero720.watermedia.api.image;
 
 import me.srrapero720.watermedia.WaterMedia;
 import me.srrapero720.watermedia.api.WaterMediaAPI;
+import me.srrapero720.watermedia.api.config.WaterConfig;
 import me.srrapero720.watermedia.api.image.decoders.GifDecoder;
 import me.srrapero720.watermedia.api.math.MathAPI;
 import me.srrapero720.watermedia.loaders.ILoader;
@@ -47,7 +48,7 @@ public class ImageAPI extends WaterMediaAPI {
      */
     public static ImageRenderer loadingGif(String modId) {
         Path processDir = WaterMedia.getLoader().processDir();
-        Path modConfig = processDir.resolve("config/watermedia/assets/" + modId + "/loading.gif");
+        Path modConfig = processDir.resolve("config/watermedia/assets/" + modId + "/" + WaterConfig.loadingGifFileName);
 
         if (Files.exists(modConfig)) {
             ImageRenderer renderer = LOADING_CACHE.get(modId);
@@ -146,15 +147,15 @@ public class ImageAPI extends WaterMediaAPI {
     }
 
     private final Path loadingGifPath;
-    ImageAPI() {
+    public ImageAPI() {
         super();
         ILoader bootstrap = WaterMedia.getLoader();
-        this.loadingGifPath = bootstrap.processDir().resolve("config/watermedia/assets/loading.gif");
+        this.loadingGifPath = bootstrap.processDir().resolve("config/watermedia/assets/" + WaterConfig.loadingGifFileName);
     }
 
     @Override
     public Priority priority() {
-        return null;
+        return Priority.NORMAL;
     }
 
     @Override
