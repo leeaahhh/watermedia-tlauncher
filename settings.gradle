@@ -1,7 +1,15 @@
 pluginManagement {
+
+    dependencies {
+    // doesn't require fg.debof() or any debofuscation tool
+    // watermedia is minecraft-agnostic (we don't believe in notch, or agnes)
+    implementation 'com.github.WaterMediaTeam.watermedia:build:<version>'
+}
+    
     repositories {
         mavenCentral()
         gradlePluginPortal()
+        maven { url 'https://jitpack.io' }
     }
 }
 
