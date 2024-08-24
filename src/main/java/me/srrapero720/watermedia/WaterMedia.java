@@ -98,16 +98,3 @@ public final class WaterMedia {
 			LOGGER.fatal(IT, "##############################  ILLEGAL ENVIRONMENT  ######################################");
 		}
 	}
-
-	public static class UnsupportedTLException extends Exception {
-		public UnsupportedTLException() {
-			super("TLauncher is NOT supported by " + NAME + ", please stop using it (and consider safe alternatives like SKLauncher or MultiMC)");
-			LOGGER.fatal(IT, "##############################  ILLEGAL LAUNCHER DETECTED ######################################");
-			LOGGER.fatal(IT, "{} refuses to load sensitive modules in a INFECTED launcher, please stop using TLauncher dammit", NAME);
-			LOGGER.fatal(IT, "Because TLauncher infects sensitive files (which {} includes) and we prefer avoid any risk", NAME);
-			LOGGER.fatal(IT, "Consider use safe alternative like SKLauncher or BUY the game and use the CurseForge Launcher");
-			LOGGER.fatal(IT, "And please avoid Feather Launcher, TLauncher Legacy or any CRACKED LAUNCHER WITH A BAD REPUTATION");
-			LOGGER.fatal(IT, "##############################  ILLEGAL LAUNCHER DETECTED  ######################################");
-		}
-	}
-}
